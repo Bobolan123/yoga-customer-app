@@ -1,75 +1,274 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { db } from "@/common/firebaseConfig";
+import { Button, Input, Toast, WhiteSpace } from "@ant-design/react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { collection, getDocs } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import {
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+interface IClassInstance {
+  id: number;
+  date: string;
+  teacher: string;
+  comment?: string;
+}
 
-export default function HomeScreen() {
+interface IYogaClass {
+  id: number;
+  day: string;
+  time: string;
+  capacity: number;
+  duration: string;
+  price: number;
+  type: string;
+  description?: string;
+  instances: IClassInstance[];
+}
+
+export default function ClassesScreen() {
+  const [classes, setClasses] = useState<IYogaClass[]>([]);
+  const [search, setSearch] = useState("");
+  const [cart, setCart] = useState<number[]>([]);
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const classSnapshot = await getDocs(collection(db, "classes"));
+        const result: IYogaClass[] = [];
+
+        for (const classDoc of classSnapshot.docs) {
+          const classData = classDoc.data();
+          const classId = parseInt(classDoc.id);
+
+          const instancesSnapshot = await getDocs(
+            collection(db, "classes", classDoc.id, "instances")
+          );
+
+          const instances: IClassInstance[] = instancesSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: parseInt(doc.id),
+              date: data.date,
+              teacher: data.teacher,
+              comment: data.comment,
+            };
+          });
+
+          result.push({
+            id: classId,
+            day: classData.day,
+            time: classData.time,
+            capacity: classData.capacity,
+            duration: classData.duration,
+            price: classData.price,
+            type: classData.type,
+            description: classData.description,
+            instances,
+          });
+        }
+
+        setClasses(result);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        Toast.fail("Failed to load data", 2);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filteredClasses = classes.filter((c) => {
+    const term = search.toLowerCase();
+    return (
+      c.day.toLowerCase().includes(term) ||
+      c.time.toLowerCase().includes(term) ||
+      c.type.toLowerCase().includes(term) ||
+      c.instances.some((i) => i.teacher.toLowerCase().includes(term))
+    );
+  });
+
+  const toggleClassInCart = (classItem: IYogaClass) => {
+    const instanceIds = classItem.instances.map((inst) => inst.id);
+
+    if (instanceIds.length === 0) {
+      Toast.info("This class has no available instances", 1);
+      return;
+    }
+
+    const allInCart = instanceIds.every((id) => cart.includes(id));
+
+    if (allInCart) {
+      setCart((prev) => prev.filter((id) => !instanceIds.includes(id)));
+      Toast.info("Removed class from cart", 1);
+    } else {
+      setCart((prev) => [...new Set([...prev, ...instanceIds])]);
+      Toast.success("Class and its instances added to cart", 1);
+    }
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpanded((prev) => (prev === id ? null : id));
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.inner}>
+        <Text style={styles.header}>Browse Yoga Classes</Text>
+        <Input
+          placeholder="Search by type, teacher, day or time"
+          value={search}
+          onChangeText={setSearch}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <WhiteSpace size="lg" />
+        <FlatList
+          data={filteredClasses}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.classCard}>
+              <TouchableOpacity
+                onPress={() => toggleExpand(item.id)}
+                style={styles.classHeader}
+              >
+                <Text style={styles.classTitle}>Class: {item.id}</Text>
+                <TouchableOpacity
+                  onPress={() => toggleClassInCart(item)}
+                  disabled={item.instances.length === 0}
+                >
+                  {item.instances.length > 0 ? (
+                    <AntDesign
+                      name={
+                        item.instances.every((inst) => cart.includes(inst.id))
+                          ? "checkcircle"
+                          : "pluscircleo"
+                      }
+                      size={20}
+                      color={
+                        item.instances.every((inst) => cart.includes(inst.id))
+                          ? "green"
+                          : "gray"
+                      }
+                    />
+                  ) : (
+                    <Text style={{ fontSize: 12, color: "gray" }}>
+                      No instances
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </TouchableOpacity>
+              <Text style={styles.classDetails}>Type: {item.type}</Text>
+              <Text style={styles.classDetails}>
+                Day: {item.day} at {item.time}
+              </Text>
+              <Text style={styles.classDetails}>
+                Price: ${item.price.toFixed(2)}
+              </Text>
+              <Text style={styles.classDetails}>
+                Duration: {item.duration}
+              </Text>
+              <Text style={styles.classDetails}>
+                Capacity: {item.capacity}
+              </Text>
+              {expanded === item.id &&
+                item.instances.map((inst) => (
+                  <View key={inst.id} style={styles.tableRow}>
+                    <View style={styles.tableTextContainer}>
+                      <Text style={{ fontSize: 14, fontWeight: "600" }}>
+                        - Class Instance: {inst.id}
+                      </Text>
+                      <Text style={styles.teacherText}>
+                        Teacher: {inst.teacher}
+                      </Text>
+                      <Text style={styles.dateText}>Date: {inst.date}</Text>
+                    </View>
+                  </View>
+                ))}
+            </View>
+          )}
+        />
+        <WhiteSpace size="lg" />
+        <Button
+          type="primary"
+          style={{ alignSelf: "center", width: "100%" }}
+          onPress={() =>
+            router.push({
+              pathname: "/cart",
+              params: { cart: JSON.stringify(cart) },
+            })
+          }
+        >
+          Go to Cart ({cart.length})
+        </Button>
+        <WhiteSpace size="lg" />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    paddingTop: 50,
+    paddingBottom: 20,
+    backgroundColor: "#fff",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  inner: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  classCard: {
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+  },
+  classHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  classTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  classDetails: {
+    marginBottom: 4,
+  },
+  tableRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    marginLeft: 10,
+  },
+  tableTextContainer: {
+    flexDirection: "column",
+  },
+  teacherText: {
+    fontSize: 14,
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#666",
   },
 });
