@@ -1,4 +1,6 @@
 import { db } from "@/common/firebaseConfig";
+import { IClassInstance, IYogaClass } from "@/common/interface";
+import { useCart } from "@/context/CartContext";
 import { Button, Input, Toast, WhiteSpace } from "@ant-design/react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -13,29 +15,10 @@ import {
   View,
 } from "react-native";
 
-interface IClassInstance {
-  id: number;
-  date: string;
-  teacher: string;
-  comment?: string;
-}
-
-interface IYogaClass {
-  id: number;
-  day: string;
-  time: string;
-  capacity: number;
-  duration: string;
-  price: number;
-  type: string;
-  description?: string;
-  instances: IClassInstance[];
-}
-
 export default function ClassesScreen() {
+  const { cart, addToCart, removeFromCart } = useCart();
   const [classes, setClasses] = useState<IYogaClass[]>([]);
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState<number[]>([]);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -99,22 +82,20 @@ export default function ClassesScreen() {
     );
   });
 
-  const toggleClassInCart = (classItem: IYogaClass) => {
-    const instanceIds = classItem.instances.map((inst) => inst.id);
+  const isInCart = (classId: number) => cart.some((item) => item.classId === classId);
 
-    if (instanceIds.length === 0) {
+  const toggleClassInCart = (classItem: IYogaClass) => {
+    if (classItem.instances.length === 0) {
       Toast.info("This class has no available instances", 1);
       return;
     }
 
-    const allInCart = instanceIds.every((id) => cart.includes(id));
-
-    if (allInCart) {
-      setCart((prev) => prev.filter((id) => !instanceIds.includes(id)));
+    if (isInCart(classItem.id)) {
+      removeFromCart(classItem.id);
       Toast.info("Removed class from cart", 1);
     } else {
-      setCart((prev) => [...new Set([...prev, ...instanceIds])]);
-      Toast.success("Class and its instances added to cart", 1);
+      addToCart({ classId: classItem.id, classData: classItem });
+      Toast.success("Class added to cart", 1);
     }
   };
 
@@ -125,7 +106,7 @@ export default function ClassesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.inner}>
-        <Text style={styles.header}>Browse Yoga Classes</Text>
+        <Text style={styles.header}>🧘 Browse Yoga Classes</Text>
         <Input
           placeholder="Search by type, teacher, day or time"
           value={search}
@@ -141,24 +122,16 @@ export default function ClassesScreen() {
                 onPress={() => toggleExpand(item.id)}
                 style={styles.classHeader}
               >
-                <Text style={styles.classTitle}>Class: {item.id}</Text>
+                <Text style={styles.classTitle}>Class #{item.id}</Text>
                 <TouchableOpacity
                   onPress={() => toggleClassInCart(item)}
                   disabled={item.instances.length === 0}
                 >
                   {item.instances.length > 0 ? (
                     <AntDesign
-                      name={
-                        item.instances.every((inst) => cart.includes(inst.id))
-                          ? "checkcircle"
-                          : "pluscircleo"
-                      }
-                      size={20}
-                      color={
-                        item.instances.every((inst) => cart.includes(inst.id))
-                          ? "green"
-                          : "gray"
-                      }
+                      name={isInCart(item.id) ? "checkcircle" : "pluscircleo"}
+                      size={22}
+                      color={isInCart(item.id) ? "green" : "gray"}
                     />
                   ) : (
                     <Text style={{ fontSize: 12, color: "gray" }}>
@@ -167,30 +140,22 @@ export default function ClassesScreen() {
                   )}
                 </TouchableOpacity>
               </TouchableOpacity>
-              <Text style={styles.classDetails}>Type: {item.type}</Text>
-              <Text style={styles.classDetails}>
-                Day: {item.day} at {item.time}
-              </Text>
-              <Text style={styles.classDetails}>
-                Price: ${item.price.toFixed(2)}
-              </Text>
-              <Text style={styles.classDetails}>
-                Duration: {item.duration}
-              </Text>
-              <Text style={styles.classDetails}>
-                Capacity: {item.capacity}
-              </Text>
+
+              <Text style={styles.classDetails}>🧘 Type: {item.type}</Text>
+              <Text style={styles.classDetails}>📅 {item.day} at {item.time}</Text>
+              <Text style={styles.classDetails}>💰 ${item.price.toFixed(2)}</Text>
+              <Text style={styles.classDetails}>⏱ Duration: {item.duration}</Text>
+              <Text style={styles.classDetails}>👥 Capacity: {item.capacity}</Text>
+
               {expanded === item.id &&
                 item.instances.map((inst) => (
                   <View key={inst.id} style={styles.tableRow}>
                     <View style={styles.tableTextContainer}>
-                      <Text style={{ fontSize: 14, fontWeight: "600" }}>
-                        - Class Instance: {inst.id}
+                      <Text style={styles.instanceText}>
+                        ▶️ Instance #{inst.id}
                       </Text>
-                      <Text style={styles.teacherText}>
-                        Teacher: {inst.teacher}
-                      </Text>
-                      <Text style={styles.dateText}>Date: {inst.date}</Text>
+                      <Text style={styles.teacherText}>👩‍🏫 {inst.teacher}</Text>
+                      <Text style={styles.dateText}>📅 {inst.date}</Text>
                     </View>
                   </View>
                 ))}
@@ -201,12 +166,7 @@ export default function ClassesScreen() {
         <Button
           type="primary"
           style={{ alignSelf: "center", width: "100%" }}
-          onPress={() =>
-            router.push({
-              pathname: "/cart",
-              params: { cart: JSON.stringify(cart) },
-            })
-          }
+          onPress={() => router.push("/cart")}
         >
           Go to Cart ({cart.length})
         </Button>
@@ -229,46 +189,57 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   header: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   classCard: {
     marginBottom: 16,
     backgroundColor: "#f9f9f9",
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   classHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 8,
   },
   classTitle: {
     fontWeight: "bold",
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 17,
   },
   classDetails: {
     marginBottom: 4,
+    fontSize: 14,
   },
   tableRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    marginLeft: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    marginTop: 6,
+    marginLeft: 4,
   },
   tableTextContainer: {
     flexDirection: "column",
+    paddingLeft: 4,
+  },
+  instanceText: {
+    fontWeight: "600",
+    fontSize: 14,
   },
   teacherText: {
-    fontSize: 14,
+    fontSize: 13,
+    marginTop: 2,
   },
   dateText: {
     fontSize: 12,
     color: "#666",
+    marginTop: 1,
   },
 });

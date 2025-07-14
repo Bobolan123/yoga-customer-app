@@ -1,13 +1,27 @@
 import { db } from '@/common/firebaseConfig';
 import { useCart } from '@/context/CartContext';
-import { Button, InputItem, List, Toast, WhiteSpace, WingBlank } from '@ant-design/react-native';
+import {
+  Button,
+  InputItem,
+  List,
+  Toast,
+  WhiteSpace,
+  WingBlank,
+} from '@ant-design/react-native';
+import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useState } from 'react';
-import { FlatList, Text } from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function CartScreen() {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, removeFromCart } = useCart();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -29,10 +43,10 @@ export default function CartScreen() {
       for (const item of cart) {
         await addDoc(collection(db, 'bookings'), {
           email,
-          class_instance_id: item.classId,
+          class_id: item.classId,
+          price: item.classData.price,
           type: item.classData.type,
-          teacher: item.classData.instances?.[0]?.teacher || '',
-          date: item.classData.instances?.[0]?.date || '',
+          day: item.classData.day,
           booking_date: serverTimestamp(),
         });
       }
@@ -51,19 +65,45 @@ export default function CartScreen() {
   return (
     <WingBlank style={{ paddingTop: 50 }}>
       <WhiteSpace size="lg" />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>Your Cart</Text>
+      <Text style={styles.header}>🧘‍♀️ Your Cart</Text>
+
+      {cart.length > 0 && (
+        <View style={styles.clearButtonWrapper}>
+          <TouchableOpacity onPress={clearCart}>
+            <Text style={styles.clearButton}>Remove All</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <List>
         <FlatList
           data={cart}
           keyExtractor={(item) => item.classId.toString()}
           renderItem={({ item }) => (
-            <List.Item>
-              <Text style={{ fontWeight: 'bold' }}>{item.classData.type}</Text>
-              <List.Item.Brief>{item.classData.instances?.[0]?.teacher}</List.Item.Brief>
-              <List.Item.Brief>{item.classData.instances?.[0]?.date}</List.Item.Brief>
+            <List.Item
+              extra={
+                <TouchableOpacity onPress={() => removeFromCart(item.classId)}>
+                  <Feather name="trash-2" size={18} color="red" />
+                </TouchableOpacity>
+              }
+              style={styles.classItem}
+            >
+              <Text style={styles.classTitle}>{item.classData.type}</Text>
+              <List.Item.Brief>
+                👩‍🏫 Teacher: {item.classData.instances?.[0]?.teacher}
+              </List.Item.Brief>
+              <List.Item.Brief>
+                📅 Date: {item.classData.instances?.[0]?.date}
+              </List.Item.Brief>
             </List.Item>
           )}
-          ListEmptyComponent={<List.Item>No classes in cart.</List.Item>}
+          ListEmptyComponent={
+            <List.Item>
+              <Text style={{ textAlign: 'center', color: '#888' }}>
+                No classes in cart.
+              </Text>
+            </List.Item>
+          }
         />
       </List>
 
@@ -79,10 +119,39 @@ export default function CartScreen() {
       </InputItem>
 
       <WhiteSpace size="lg" />
-      <Button type="primary" loading={loading} onPress={handleSubmit}>
-        Book Now
+      <Button
+        type="primary"
+        loading={loading}
+        disabled={cart.length === 0}
+        onPress={handleSubmit}
+      >
+        Book Now ({cart.length})
       </Button>
       <WhiteSpace size="lg" />
     </WingBlank>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  classItem: {
+    backgroundColor: '#fdfdfd',
+  },
+  classTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  clearButtonWrapper: {
+    alignItems: 'flex-end',
+    marginBottom: 6,
+  },
+  clearButton: {
+    color: 'red',
+    fontSize: 13,
+    marginRight: 6,
+  },
+});

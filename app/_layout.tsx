@@ -1,7 +1,7 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -10,6 +10,7 @@ import "react-native-reanimated";
 
 import { CartProvider } from "@/context/CartContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { Provider } from "@ant-design/react-native";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
@@ -25,16 +26,18 @@ export default function RootLayout() {
         <ThemeProvider
             value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-            <CartProvider>
-                <Stack>
-                    <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen name="+not-found" />
-                </Stack>
-                <StatusBar style="auto" />
-            </CartProvider>
+            <Provider>
+                <CartProvider>
+                    <Stack>
+                        <Stack.Screen
+                            name="(tabs)"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen name="+not-found" />
+                    </Stack>
+                    <StatusBar style="auto" />
+                </CartProvider>
+            </Provider>
         </ThemeProvider>
     );
 }

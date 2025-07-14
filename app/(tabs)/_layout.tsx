@@ -1,49 +1,91 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
+import { Platform, Text, View } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
+import { useCart } from "@/context/CartContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Feather from "@expo/vector-icons/Feather";
-export default function TabLayout() {
-    const colorScheme = useColorScheme();
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
-    return (
-        <Tabs
-            screenOptions={{
-                tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-                headerShown: false,
-                tabBarButton: HapticTab,
-                tabBarBackground: TabBarBackground,
-                tabBarStyle: Platform.select({
-                    ios: {
-                        position: "absolute",
-                    },
-                    default: {},
-                }),
-            }}
+function CartTabIcon({ color }: { color: string }) {
+  const { cart } = useCart();
+
+  return (
+    <View style={{ width: 30, height: 30, justifyContent: "center", alignItems: "center" }}>
+      <Feather name="shopping-cart" size={28} color={color} />
+      {cart.length > 0 && (
+        <View
+          style={{
+            position: "absolute",
+            top: -4,
+            right: -6,
+            backgroundColor: "red",
+            borderRadius: 8,
+            paddingHorizontal: 4,
+            minWidth: 16,
+            height: 16,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Home",
-                    tabBarIcon: ({ color }) => (
-                        <IconSymbol size={28} name="house.fill" color={color} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="cart"
-                options={{
-                    title: "Cart",
-                    tabBarIcon: ({ color }) => (
-                        <Feather size={28} name="shopping-cart" color={color} />
-                    ),
-                }}
-            />
-        </Tabs>
-    );
+          <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>
+            {cart.length}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
 }
+
+export default function TabLayout() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        headerShown: false,
+        tabBarButton: HapticTab,
+        tabBarBackground: TabBarBackground,
+        tabBarStyle: Platform.select({
+          ios: {
+            position: "absolute",
+          },
+          default: {},
+        }),
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: "Cart",
+          tabBarIcon: ({ color }) => <CartTabIcon color={color} />,
+        }}
+      />
+       <Tabs.Screen
+        name="bookings"
+        options={{
+          title: "Bookings",
+          tabBarIcon: ({ color }) => <FontAwesome5 name="shopping-bag" size={24} color={color} />,
+        }}
+      />
+    </Tabs>
+    
+  );
+}
+
+
+

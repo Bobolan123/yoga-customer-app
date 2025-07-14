@@ -6,6 +6,18 @@ export interface IClassInstance {
   comment?: string;
 }
 
+
+export interface IBooking {
+  id: string; 
+  email: string;
+  class_id: number;
+  type: string;
+  price: number;
+  day: string;
+  booking_date: Date; 
+}
+
+
 export interface IYogaClass {
   id: number;
   day: string;
@@ -17,11 +29,4 @@ export interface IYogaClass {
   description?: string;
   instances: IClassInstance[];
 }
-  
-  export interface IBooking {
-    id: number;                 
-    email: string;              
-    class_instance_id: number;  
-    booking_date: string;       
-  }
   
