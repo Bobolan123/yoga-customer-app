@@ -168,7 +168,7 @@ export default function ClassesScreen() {
           style={{ alignSelf: "center", width: "100%" }}
           onPress={() => router.push("/cart")}
         >
-          Go to Cart ({cart.length})
+          Go to Cart
         </Button>
         <WhiteSpace size="lg" />
       </View>
