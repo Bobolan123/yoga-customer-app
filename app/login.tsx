@@ -72,7 +72,7 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient colors={Gradients.accent} style={{ flex: 1 }}>
-      <SafeAreaView style={[SharedStyles.container, { backgroundColor: 'transparent' }]}>
+      <SafeAreaView style={SharedStyles.container}>
         <KeyboardAvoidingView 
           style={SharedStyles.container} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

@@ -73,6 +73,13 @@ export default function TabLayout() {
           ios: {
             position: "absolute",
           },
+          android: {
+            backgroundColor: Colors[colorScheme ?? "light"].background,
+            borderTopWidth: 0,
+            elevation: 0,
+            height: 60,
+            paddingBottom: 8,
+          },
           default: {},
         }),
       }}

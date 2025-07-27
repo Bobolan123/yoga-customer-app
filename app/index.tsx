@@ -44,9 +44,9 @@ export default function StartScreen() {
   };
 
   return (
-    <SafeAreaView style={SharedStyles.container}>
-      <StatusBar barStyle="light-content" />
-      <LinearGradient colors={Gradients.accent} style={SharedStyles.container}>
+    <LinearGradient colors={Gradients.accent} style={{ flex: 1 }}>
+      <SafeAreaView style={[SharedStyles.container, { backgroundColor: 'transparent' }]}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <View style={styles.content}>
           {/* Logo and Branding */}
           <View style={SharedStyles.logoContainer}>
@@ -107,8 +107,8 @@ export default function StartScreen() {
             </Text>
           </View>
         </View>
-      </LinearGradient>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 

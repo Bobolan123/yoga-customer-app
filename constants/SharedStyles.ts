@@ -5,6 +5,7 @@ export const SharedStyles = StyleSheet.create({
   // Containers
   container: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   safeArea: {
     flex: 1,
@@ -14,6 +15,7 @@ export const SharedStyles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xl,
+    backgroundColor: 'transparent',
   },
   centerContainer: {
     flex: 1,

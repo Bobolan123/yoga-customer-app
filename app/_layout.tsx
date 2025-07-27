@@ -1,13 +1,14 @@
 import {
-    DarkTheme,
     DefaultTheme,
-    ThemeProvider,
+    ThemeProvider
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { View } from 'react-native';
 import "react-native-reanimated";
 
+import { SharedStyles } from "@/constants/SharedStyles";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -32,49 +33,67 @@ export default function RootLayout() {
     };
 
     return (
-        <ThemeProvider value={customTheme}>
-            <Provider>
-                <AuthProvider>
-                    <CartProvider>
-                        <Stack
-                            screenOptions={{
-                                contentStyle: { backgroundColor: 'transparent' },
-                            }}
-                        >
-                            <Stack.Screen
-                                name="index"
-                                options={{ 
-                                    headerShown: false,
-                                    contentStyle: { backgroundColor: 'transparent' }
+        <View style={SharedStyles.safeArea}>
+            <ThemeProvider value={customTheme}>
+                <Provider>
+                    <AuthProvider>
+                        <CartProvider>
+                            <Stack
+                                screenOptions={{
+                                    contentStyle: { 
+                                        flex: 1,
+                                        backgroundColor: 'transparent'
+                                    },
                                 }}
-                            />
-                            <Stack.Screen
-                                name="login"
-                                options={{ 
-                                    headerShown: false,
-                                    contentStyle: { backgroundColor: 'transparent' }
-                                }}
-                            />
-                            <Stack.Screen
-                                name="register"
-                                options={{ 
-                                    headerShown: false,
-                                    contentStyle: { backgroundColor: 'transparent' }
-                                }}
-                            />
-                            <Stack.Screen
-                                name="(tabs)"
-                                options={{ 
-                                    headerShown: false,
-                                    contentStyle: { backgroundColor: 'transparent' }
-                                }}
-                            />
-                            <Stack.Screen name="+not-found" />
-                        </Stack>
-                        <StatusBar style="auto" backgroundColor="transparent" translucent />
-                    </CartProvider>
-                </AuthProvider>
-            </Provider>
-        </ThemeProvider>
+                            >
+                                <Stack.Screen
+                                    name="index"
+                                    options={{ 
+                                        headerShown: false,
+                                        contentStyle: { 
+                                            flex: 1,
+                                            backgroundColor: 'transparent'
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="login"
+                                    options={{ 
+                                        headerShown: false,
+                                        contentStyle: { 
+                                            flex: 1,
+                                            backgroundColor: 'transparent'
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="register"
+                                    options={{ 
+                                        headerShown: false,
+                                        contentStyle: { 
+                                            flex: 1,
+                                            backgroundColor: 'transparent'
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen
+                                    name="(tabs)"
+                                    options={{ 
+                                        headerShown: false,
+                                        contentStyle: { 
+                                            flex: 1,
+                                            backgroundColor: 'transparent'
+                                        }
+                                    }}
+                                />
+                                <Stack.Screen name="+not-found" />
+                            </Stack>
+                            <StatusBar style="light" backgroundColor="transparent" translucent />
+                        </CartProvider>
+                    </AuthProvider>
+                </Provider>
+            </ThemeProvider>
+        </View>
     );
 }
+    
