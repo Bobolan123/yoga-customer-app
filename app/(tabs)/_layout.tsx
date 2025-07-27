@@ -1,5 +1,5 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs, useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import { Platform, Text, View } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
@@ -7,6 +7,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -41,8 +42,25 @@ function CartTabIcon({ color }: { color: string }) {
   );
 }
 
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return null; // or a loading screen
+  }
+
+  if (!user) {
+    return null; // redirecting to login
+  }
 
   return (
     <Tabs

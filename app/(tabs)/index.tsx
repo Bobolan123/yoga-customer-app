@@ -1,8 +1,10 @@
 import { db } from "@/common/firebaseConfig";
 import { IClassInstance, IYogaClass } from "@/common/interface";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { Button, Input, Toast, WhiteSpace } from "@ant-design/react-native";
 import { AntDesign } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -17,6 +19,7 @@ import {
 
 export default function ClassesScreen() {
   const { cart, addToCart, removeFromCart } = useCart();
+  const { logout } = useAuth();
   const [classes, setClasses] = useState<IYogaClass[]>([]);
   const [search, setSearch] = useState("");
   const router = useRouter();
@@ -103,10 +106,19 @@ export default function ClassesScreen() {
     setExpanded((prev) => (prev === id ? null : id));
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.inner}>
-        <Text style={styles.header}>🧘 Browse Yoga Classes</Text>
+        <View style={styles.headerContainer}>
+          <Text style={styles.header}>🧘 Browse Yoga Classes</Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Feather name="log-out" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
         <Input
           placeholder="Search by type, teacher, day or time"
           value={search}
@@ -188,10 +200,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   header: {
     fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 16,
+  },
+  logoutButton: {
+    padding: 8,
   },
   classCard: {
     marginBottom: 16,

@@ -54,7 +54,7 @@ export default function LoginScreen() {
     try {
       const result = await login(email, password);
       if (result.success) {
-        router.replace('/(tabs)/home');
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Login Failed', result.error || 'Please try again.');
       }
@@ -69,13 +69,10 @@ export default function LoginScreen() {
     router.push('/register');
   };
 
-  const goBack = () => {
-    router.back();
-  };
 
   return (
-    <SafeAreaView style={SharedStyles.container}>
-      <LinearGradient colors={Gradients.accent} style={SharedStyles.container}>
+    <LinearGradient colors={Gradients.accent} style={{ flex: 1 }}>
+      <SafeAreaView style={SharedStyles.container}>
         <KeyboardAvoidingView 
           style={SharedStyles.container} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -84,13 +81,6 @@ export default function LoginScreen() {
             contentContainerStyle={SharedStyles.scrollContainer}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header with Back Button */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={goBack} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color={Colors.white} />
-              </TouchableOpacity>
-            </View>
-
             {/* Logo Section */}
             <View style={SharedStyles.logoContainer}>
               <View style={SharedStyles.logoCircle}>
@@ -189,23 +179,22 @@ export default function LoginScreen() {
                   <Text style={styles.signupLink}>Create Account</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Back to Home Link */}
+              <View style={styles.signupContainer}>
+                <TouchableOpacity onPress={() => router.push('/')}>
+                  <Text style={styles.signupLink}>← Back to Home</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </LinearGradient>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = {
-  header: {
-    paddingTop: 10,
-    marginBottom: 20,
-  },
-  backButton: {
-    padding: 10,
-    alignSelf: 'flex-start' as const,
-  },
   eyeIcon: {
     position: 'absolute' as const,
     right: 15,

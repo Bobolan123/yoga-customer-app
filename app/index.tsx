@@ -1,19 +1,18 @@
-import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuth } from '@/context/AuthContext';
-import { Redirect } from 'expo-router';
 import { Colors, Gradients } from '@/constants/Design';
 import { SharedStyles } from '@/constants/SharedStyles';
+import { useAuth } from '@/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Redirect, useRouter } from 'expo-router';
+import React from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function StartScreen() {
   const router = useRouter();

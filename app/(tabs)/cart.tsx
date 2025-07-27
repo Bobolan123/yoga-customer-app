@@ -1,8 +1,8 @@
 import { db } from '@/common/firebaseConfig';
+import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import {
   Button,
-  InputItem,
   List,
   Toast,
   WhiteSpace,
@@ -22,13 +22,13 @@ import {
 
 export default function CartScreen() {
   const { cart, clearCart, removeFromCart } = useCart();
-  const [email, setEmail] = useState('');
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (!email) {
-      Toast.fail('Please enter your email', 1);
+    if (!user?.email) {
+      Toast.fail('User not authenticated', 1);
       return;
     }
 
@@ -42,7 +42,7 @@ export default function CartScreen() {
     try {
       for (const item of cart) {
         await addDoc(collection(db, 'bookings'), {
-          email,
+          email: user.email,
           class_id: item.classId,
           price: item.classData.price,
           type: item.classData.type,
@@ -53,7 +53,7 @@ export default function CartScreen() {
 
       Toast.success('Booking completed!', 2);
       clearCart();
-      router.replace({ pathname: '/bookings', params: { email } });
+      router.replace({ pathname: '/bookings', params: { email: user.email } });
     } catch (err) {
       console.error('Booking error:', err);
       Toast.fail('Failed to submit booking', 2);
@@ -108,15 +108,9 @@ export default function CartScreen() {
       </List>
 
       <WhiteSpace size="lg" />
-      <InputItem
-        clear
-        type="text"
-        value={email}
-        onChange={setEmail}
-        placeholder="Your email"
-      >
-        Email
-      </InputItem>
+      <View style={styles.emailContainer}>
+        <Text style={styles.emailText}>📧 Booking Email: {user?.email}</Text>
+      </View>
 
       <WhiteSpace size="lg" />
       <Button
@@ -153,5 +147,22 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 13,
     marginRight: 6,
+  },
+  emailContainer: {
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    borderRadius: 8,
+    marginHorizontal: 16,
+  },
+  emailLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  emailText: {
+    fontSize: 18,
+    color: '#333',
+    fontWeight: '500',
   },
 });
