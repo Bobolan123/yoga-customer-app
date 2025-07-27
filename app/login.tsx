@@ -72,13 +72,13 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient colors={Gradients.accent} style={{ flex: 1 }}>
-      <SafeAreaView style={SharedStyles.container}>
+      <SafeAreaView style={[SharedStyles.container, { backgroundColor: 'transparent' }]}>
         <KeyboardAvoidingView 
           style={SharedStyles.container} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView 
-            contentContainerStyle={SharedStyles.scrollContainer}
+            contentContainerStyle={[SharedStyles.scrollContainer, { minHeight: '100%' }]}
             showsVerticalScrollIndicator={false}
           >
             {/* Logo Section */}

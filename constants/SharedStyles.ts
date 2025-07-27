@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from './Design';
+import { BorderRadius, Colors, Shadows, Spacing, Typography } from './Design';
 
 export const SharedStyles = StyleSheet.create({
   // Containers
@@ -8,7 +8,7 @@ export const SharedStyles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: 'transparent',
   },
   scrollContainer: {
     flexGrow: 1,
