@@ -39,7 +39,6 @@ const STORAGE_KEY = '@yoga_app_user_session';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const checkLocalSession = async () => {
@@ -75,10 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'Invalid user data.' };
       }
 
-      // Hash the provided password and compare with stored hash
       const hashedInputPassword = CryptoJS.SHA256(password.toString()).toString();
-      const passwordMatches = hashedInputPassword === userData.password;
-      if (!passwordMatches) {
+      if (hashedInputPassword !== userData.password) {
         return { success: false, error: 'Incorrect email or password.' };
       }
       
@@ -113,8 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: 'An account with this email already exists.' };
       }
 
-      const hashedPassword = CryptoJS.SHA256(userData.password.toString()).toString();
-      
+
+      const hashedPassword = CryptoJS.SHA256(userData.password).toString();
+
       const newUserDoc = {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -147,21 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async (): Promise<void> => {
-    if (isLoggingOut) return; // Prevent multiple logout calls
-    
-    try {
-      setIsLoggingOut(true);
-      // Clear user state first
-      setUser(null);
-      // Then clear storage
-      await AsyncStorage.removeItem(STORAGE_KEY);
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if storage removal fails, ensure user is logged out
-      setUser(null);
-    } finally {
-      setIsLoggingOut(false);
-    }
+    setUser(null);
+    await AsyncStorage.removeItem(STORAGE_KEY);
   };
 
   const value: AuthContextType = {
